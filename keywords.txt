@@ -1,0 +1,51 @@
+#######################################
+# Syntax Coloring Map For USCL
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+USCL	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+HSV	KEYWORD2
+RGB	KEYWORD2
+LED	KEYWORD2
+RED	KEYWORD2
+GREEN	KEYWORD2
+BLUE	KEYWORD2
+drawVoxels	KEYWORD2
+getCubeSize	KEYWORD2
+getFPS	KEYWORD2
+setAutoClearBackBuffer	KEYWORD2
+getMaxBrightness	KEYWORD2
+copyCurrentFrame	KEYWORD2
+HSV_line	KEYWORD2
+RGB_line	KEYWORD2
+LED_line	KEYWORD2
+GREEN_line	KEYWORD2
+BLUE_line	KEYWORD2
+RED_line	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+CUBE_SIZE_4x4x4	LITERAL1
+CUBE_SIZE_5x5x5	LITERAL1
+CUBE_SIZE_6x6x6	LITERAL1
+CUBE_SIZE_7x7x7	LITERAL1
+CUBE_SIZE_8x8x8	LITERAL1
+RGB_CUBE	LITERAL1
+LED_CUBE	LITERAL1
+SPI_speed_2	LITERAL1
+SPI_speed_4	LITERAL1
+SPI_speed_8	LITERAL1
+SPI_speed_16	LITERAL1
+SPI_speed_32	LITERAL1
+SPI_speed_64	LITERAL1
