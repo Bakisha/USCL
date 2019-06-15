@@ -1,7 +1,7 @@
 # USCL
 
                                   UNIVERSAL SERIAL CUBE LIBRARY - USCL
-  For Single color and RGB colored LED cube, from 4x4x4 to 8x8x8 CUBE sizes, for different types of microcontrollers, included, but not limited to, Arduino , Bluepill and Wemos D1 mini.
+  For Single color and RGB colored LED cube, from 4x4x4 to 8x8x8 CUBE sizes, for BLUEPILLL board
   
 NOTE: This is not about bulding LED RGB/single color CUBE, this library is software side of it.
 
@@ -41,12 +41,12 @@ I tried to pass as much variables to library, so it can be as universal as much.
 Here is pinouts of supported MCU:
 //
 //  HARDWARE
-//  595             = ARDUINO                         = BLUEPILL                              = WEMOS_D1_mini
-//-----------------------------------------------------------------------------------------------------------------------
-//  OE pin          = D10  // user defined            = PA0  // user defined                  = D4 (10k PullUp; BUILTIN_LED)
-//  Latch           = D9   // user defined            = PA1  // user defined                  = D3 IO, 10k Pull-up (user defined)
-//  DataIN  (MOSI)  = D11 (MOSI)                      = PA7  // bluepill SPI1 MOSI            = D7 (MOSI)
-//  SRCLK   (SCK)   = D13 (SCK)                       = PA5  // bluepill SPI1 CLK             = D5 (CLK)
+//  595             = BLUEPILL 
+//------------------------------------------------
+//  OE pin          = PA0  // user defined 
+//  Latch           = PA1  // user defined 
+//  DataIN  (MOSI)  = PA7  // bluepill SPI1 MOSI
+//  SRCLK   (SCK)   = PA5  // bluepill SPI1 CLK 
 
 
 
@@ -65,34 +65,6 @@ This gives very nice non-flickering experience. It can be disabled for those who
 
 Since it have so much combination, here is some examples (with measured recommendation, but it all depends on the hardware of your cube):
 
-// uncomment line with USCL to match your cube
-
-
-// wemos D1 mini
-// Add this adress to your board manager, search: wemos
-// http://arduino.esp8266.com/stable/package_esp8266com_index.json
-// @60 fps ( minimum without flicker )
-// 4x4x4 RGB - max MODULATION_BIT_DEPTH = 4 (recommended = 3 )
-// 8x8x8 RGB - max MODULATION_BIT_DEPTH = 2 (recommended = 2 )
-// 4x4x4 LED - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
-// 8x8x8 LED - max MODULATION_BIT_DEPTH = 4 (recommended = 3 )
-// SPI_speed - any, it is always same speed --> SLOW 
-// NOTE: Best for smaller ones, HUGE storage space for placing anymations, but low BAM bit depth. Maybe can be combined with Wifi stuff. This is just a test, not really tried on real cube  with Wemos D1 mini. I was just looking in OE pin, and it looks OK 
-// USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , D4, D3,  60 , 2, SPI_speed_8); // uncomment this if you are building for Wemos D1 mini
-
-// Arduino (UNO, NANO, MINI) 
-// @60 fps , SPI_speed_2 ( minimum without flicker )
-// 4x4x4 RGB - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
-// 8x8x8 RGB - max MODULATION_BIT_DEPTH = 3 (recommended = 3 or 1 )
-// 4x4x4 LED - max MODULATION_BIT_DEPTH = 7 (recommended = 5 )
-// 8x8x8 LED - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
-// SPI_speed - SPI_speed_2 is max (8MHz). Lower (SPI_speed_4 or SPI_speed_8) only if board is large with long wires, but MODULATION_BIT_DEPTH must decrease if it doesn't work
-// NOTE: LOW flash memory for all animations. Make your pick
-// NOTE 2: LOW RAM !MODULATION_BIT_DEPTH is max 3 if any animation use "line" function, 4 if it doesn't use it
-// NOTE 3: 8x8x8 RGB, MODULATION_BIT_DEPTH 2 - doesn't work LOL dunno why, maybe low RAM?
-// NOTE 4: Untested, but should be working on Arduino MEGA(2560)
-// USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , 10, 9,  60 , 4, SPI_speed_2); // uncomment this if you are building for Arduino family
-
 // STM32F1 (Bluepill, Blackpill)
 // Add this adress to your board manager, search: stm32duino
 // http://dan.drown.org/stm32duino/package_STM32duino_index.json
@@ -102,9 +74,7 @@ Since it have so much combination, here is some examples (with measured recommen
 // 4x4x4 LED - max MODULATION_BIT_DEPTH = 8 (recommended = 6 )
 // 8x8x8 LED - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
 // SPI_speed - SPI_speed_8 (18MHz). Lower (SPI_speed_16) should be enough even for breadboard connectons
-// NOTE: My Favorite :-)
-// NOTE 2:
-// NOTE 3:
+
 //USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_8); // uncomment this if you are building for bluepill
 
 EXPLANATION OF VARIABLES AND SYNTAX:
@@ -139,7 +109,7 @@ EXPLANATION OF VARIABLES AND SYNTAX:
             SPI_speed_32	  - MPU speed / 32
             SPI_speed_64    - MPU speed / 64
             
-               Use this to set SPI speed for your cube. It CPU MHz / number. Meaning, for 16MHz arduino, SPI_speed_2 is 16/2 = 8Mhz, that is more than enough for 74hc595 at 5V. But for Bluepill, maximum speed of 74HC595 at 3.3V is experimental. Since it's 76MHz MPU, experiment with low values first (SPI_speed_64= 76/64), around 1.18MHZ should be enough even for cube with chips on breadboard. I use 20MHz for my 4x4x4 RGB cube, but for 8x8x8 RGB cude fastest speed i manage to do is 9.5Mhz. You can tweak values in USCL.cpp and add delays in microseconds when latching data for maximum perfomance (You'll know it's latch issue when leds connected to last 74hc595 are flickering)
+  Use this to set SPI speed for your cube. It CPU MHz / number. Meaning,  for Bluepill, maximum speed of 74HC595 at 3.3V is experimental. Since it's 76MHz MPU, experiment with low values first (SPI_speed_64= 76/64), around 1.18MHZ should be enough even for cube with chips on breadboard. I use 19MHz for my 4x4x4 RGB cube, but for 8x8x8 RGB cude fastest speed i manage to do is 9.5Mhz. You can tweak values in USCL.cpp and add delays in microseconds when latching data for maximum perfomance (You'll know it's latch issue when leds connected to last 74hc595 are flickering)
             
 ANIMATIONS:
 
@@ -181,12 +151,13 @@ variables that can be read from library:
   
 Commands for control of cube parameters:
 
+-cube_name.setAutoClearBackBuffer(false/true); 
 
-      cube_name.setAutoClearBackBuffer(false/true); 
-              - every time next frame is draw, back buffer will be cleared (true) (You must re-draw every frame) or drawed LEDs will remain the same (false) (You must draw it again with brighness 0 to turn it off)
+ every time next frame is draw, back buffer will be cleared (true) (You must re-draw every frame) or drawed LEDs will remain the same (false) (You must draw it again with brighness 0 to turn it off)
 
-    cube.copyCurrentFrame();
-              - copy frame that is showing in front buffer to back buffer so stuff can be added/deleted 
+-cube.copyCurrentFrame();
+
+copy frame that is showing in front buffer to back buffer so stuff can be added/deleted 
               
               
 List of commands for drawing (note: it not imiadelly shown, it is drawn in back buffer)
@@ -214,7 +185,7 @@ List of commands for drawing (note: it not imiadelly shown, it is drawn in back 
       
 Only few complex functions included:
 
-    // Draw functions
+Draw functions:
     cube_name.HSV_line(z0, x0, y0, z1, x1, y1,  hue,  S , V);
     cube_name.RGB_line(z0, x0, y0, z1, x1, y1,  red,  green ,  blue);
     cube_name.LED_line(z0, x0, y0, z1, x1, y1,  brightness);
