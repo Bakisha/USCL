@@ -234,17 +234,22 @@ timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
 
   SPI.transfer((1 << _zPositionCounter)); // Send Current layer byte
 
+
   // Latch the data
   digitalWrite(_LE_pin, HIGH);
   //    delayMicroseconds(1); // latch tweaks
   // This part is tricky. Latch must last long enough that signal at last 595 stay ON long enough for data to be latched
   // and that's why digitalWrite is here. It is not just poor programming skills, it NEED to be slow enough. And yes, i have poor programming skills :-)
 
-  digitalWrite(_LE_pin, LOW); // ok, now is the time to release latch
+  //digitalWrite(_LE_pin, LOW); // ok, now is the time to release latch
   //    delayMicroseconds(1);
-  digitalWrite(_OE_pin, LOW); //  almout at the end IRQ, time to enable OE
+ 
 
 
+_zPositionCounter++;
+if (_zPositionCounter >= _cubeSize)
+{
+  _zPositionCounter = 0;
   _modulationCounter++;
   if (_modulationCounter == _modulationBitValue)
   {
@@ -253,16 +258,14 @@ timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
     if (_modulationOffset == MODULATION_BIT_DEPTH)
     {
       _modulationOffset = 0;
-      _zPositionCounter++;
-      if (_zPositionCounter >= _cubeSize)
-      {
-        _zPositionCounter = 0;
-        pageFlipBuffering();
-      }
+      pageFlipBuffering();
     }
-    _modulationBitValue = myPow(2, _modulationOffset);
   }
+  _modulationBitValue = myPow(2, _modulationOffset);
+}
 
+digitalWrite(_LE_pin, LOW); 
+ digitalWrite(_OE_pin, LOW); //  almout at the end IRQ, time to enable OE
 }
 
 // Interrupt handler
