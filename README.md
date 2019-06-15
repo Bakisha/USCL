@@ -1,6 +1,3 @@
-# USCL
-Universal Serial 595 LED Cube Library - Library for 4x4x4 to 8x8x8 RGB / Single color LED CUBE - for Arduino, BLUEPILL and WEMOS D1 Mini
-
 
 UNIVERSAL SERIAL CUBE LIBRARY - USCL
   For Single color and RGB colored LED cube, from 4x4x4 to 8x8x8 CUBE sizes, for different types of microcontrollers
@@ -257,4 +254,3 @@ Expand to support more cube sizes (or even better, different cube hight)
             
             
             
-
