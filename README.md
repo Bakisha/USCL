@@ -52,10 +52,10 @@ Here is pinouts of supported MCU:
 HARDWARE
 595             = BLUEPILL 
 ------------------------------------------------
-OE pin          = PA0  // user defined 
-Latch           = PA1  // user defined 
-DataIN          = PA7  // bluepill SPI1 MOSI
-SRCLK           = PA5  // bluepill SPI1 CLK 
+OE pin          = PA0  - user defined 
+Latch           = PA1  - user defined 
+DataIN          = PA7  - bluepill SPI1 MOSI
+SRCLK           = PA5  - bluepill SPI1 CLK 
 
 
 
