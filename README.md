@@ -73,15 +73,15 @@ This gives very nice non-flickering experience. It can be disabled for those who
 
 Since it have so much combination, here is some examples (with measured recommendation, but it all depends on the hardware of your cube):
 
-// STM32F1 (Bluepill, Blackpill)
-// Add this adress to your board manager, search: stm32duino
-// http://dan.drown.org/stm32duino/package_STM32duino_index.json
-// @60 fps , SPI_speed_8  ( minimum without flicker )
-// 4x4x4 RGB - max MODULATION_BIT_DEPTH = 7 (recommended = 5 )
-// 8x8x8 RGB - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
-// 4x4x4 LED - max MODULATION_BIT_DEPTH = 8 (recommended = 6 )
-// 8x8x8 LED - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
-// SPI_speed - SPI_speed_4 (18MHz) . Lower (SPI_speed_16) should be enough even for breadboard connectons
+-STM32F1 (Bluepill, Blackpill)
+ Add this adress to your board manager, search: stm32duino
+ http://dan.drown.org/stm32duino/package_STM32duino_index.json
+ @60 fps , SPI_speed_8  ( minimum without flicker )
+ 4x4x4 RGB - max MODULATION_BIT_DEPTH = 7 (recommended = 5 )
+ 8x8x8 RGB - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
+ 4x4x4 LED - max MODULATION_BIT_DEPTH = 8 (recommended = 6 )
+ 8x8x8 LED - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
+ SPI_speed - SPI_speed_4 (18MHz) . Lower (SPI_speed_16) should be enough even for breadboard connectons
 
 USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_4); 
 
