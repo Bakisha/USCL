@@ -48,14 +48,18 @@ Keep in mind, that library us "positive" logic. Meaning, digital 1 on output, me
 
 I tried to pass as much variables to library, so it can be as universal as much.
 Here is pinouts of supported MCU:
-
 HARDWARE
-595             = BLUEPILL 
-------------------------------------------------
-OE pin          = PA0  - user defined 
-Latch           = PA1  - user defined 
-DataIN          = PA7  - bluepill SPI1 MOSI
-SRCLK           = PA5  - bluepill SPI1 CLK 
+
+-595             = BLUEPILL
+
+-OE pin          = PA0 user defined
+
+-Latch           = PA1 user defined
+
+-DataIN          = PA7 bluepill SPI1 MOSI
+
+-SRCLK           = PA5 bluepill SPI1 CLK 
+
 
 
 
