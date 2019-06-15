@@ -1,5 +1,6 @@
 # USCL
-UNIVERSAL SERIAL CUBE LIBRARY - USCL
+
+                                  UNIVERSAL SERIAL CUBE LIBRARY - USCL
   For Single color and RGB colored LED cube, from 4x4x4 to 8x8x8 CUBE sizes, for different types of microcontrollers
   
 NOTE: This is not about bulding LED RGB/single color CUBE, this library is software side of it.
