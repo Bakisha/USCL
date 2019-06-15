@@ -10,30 +10,39 @@ I love LED cubes. There are lot of guides how to build them on internet.
 But every each one of them comes with software that i can't use. 
 Then i found library for single color LED cube that use only 595 chip and few transistors. 
 The "Universal SR driven 4x4x4 to 8x8x8 LED cube library" that can be found at
+
 https://forum.arduino.cc/index.php?topic=336469.0
+
 What i liked about this library is it's universality. Code maded for 8x8x8 can be used for 4x4x4 cube.
 Then my skill got better and i decided to build RGB cube. I started with similar plan:
 Use 74hc595 for transfering all data, ULN2803 for driving common anode RGB LEDs and P-MOSFETS (or UDN2981 for smaller cubes) for driving layers.
+
 First was arduino based 4x4x4. But then i hit a wall. Again i needed a software, now for RGB cube.
 With noob skils in programing, i started changing LedCube library.
+
 In a meantime, i finished 8x8x8 RGB cube, but this time i used STM32 microcontroller, the cheap BLUEPILL from ALIEXPRESS.
 And, since it's same in design, i used software from a youtuber Kevin Darrah ( https://www.kevindarrah.com/ ), but changed interrupt code from some bluepill tutorial.
+
 Well, after a year, i finally manage to finish a library that can be used in all sizes (between 4 and 8) and that can
-be compiled for both arduino and bluepill. Just for fun, i added Wemos D1 Mini, 
-and even it's slow (as, i can't achive great color bit depth), and i dind't test it on actual cube, it compiled OK , and timing was OK in my DSO138 Oscilloscope.
+be compiled for both arduino and bluepill. 
 
 HARDWARE:
 As for hardware, i was never able to draw schematics, but it should be simple to explain:
 MCU sends data via SPI hardware pins, and two other (selectable) pins is used for Output Enable and Latch pin for 74hc595.
- First in line 595 is used to control layers, and in combination with ULN2803 is pulling P-mosfet (or pnp array transistors: UDN2981). Number of other 74hc595 depends on cube size.
- For 4x4x4 RGB cube, it's total of 7 74hc595 (1 for layer + 2 per color ).
-  For 8x8x8 RGB cube it's total of 25 74hc595, 25 ULN2803, and 8 P-type logic level mosfets (i used IRF9530 for my 8x8x8 RGB Cube with bluepill, and i added 74hc245 buffer between PCB - i build  150x100 single sided PCB for each color and 1 for layer driver and MPU, and stack it all on top of each other. ). 
+ First in line 595 is used to control layers, and in combination with ULN2803 is pulling P-mosfet's gate to ground (or pnp array transistors: UDN2981).
+ Number of other 74hc595 depends on cube size.
+For 4x4x4 RGB cube, it's total of 7 74hc595 (1 for layer + 2 per color ).
+For 8x8x8 RGB cube it's total of 25 74hc595, 25 ULN2803, and 8 P-type logic level mosfets (i used IRF9530 for my 8x8x8 RGB Cube with bluepill, and i added 74hc245 buffer between PCB - i build  150x100 single sided PCB for each color and 1 for layer driver and MPU, and stack it all on top of each other. ). 
 But, there is so much flexibility, instead of cheap 74hc595/ULN2803 combo, other dedicated LED driver chips can be used . I preffered THT , so i stayed with 595. Only first chip in line should be 595 (or rather, 8bit serial to parallel) chip. 
+
 Important note: On 5x5x5, 6x6x6 and 7x7x7 cube , there is unused bits.
 For example 5x5x5 rgb cube, since it have 25 leds per color, it needed 4 74hc595, but in 4th 595, only 1 output is used (as 25th), other outputs are not connected. For next color, next 595 is used (not next avaible pin). So, in total it need 4*3+1, 13 chips
+
 So, for 6x6x6 rgb cube it need 5 (36/8 = 5) 74hc595 per color + 1 for layer. In total 17 chips. 
+
 For 7x7x7 rgb cube it's 7 chips per color (49/8). So 22 in total.
-compared to 25 chips in total for 8x8x8 RGB cube, i preffered that one, even cube support others.
+
+Compared to 25 chips in total for 8x8x8 RGB cube, i preffered that one, even cube support others.
 For single color led cubes, LEDs can be driven from 74hc595, and 1 ULN2803 can drive cathodes of layers.
 Keep in mind, that library us "positive" logic. Meaning, digital 1 on output, means LED (or layer) is ON.
 
@@ -45,19 +54,18 @@ Here is pinouts of supported MCU:
 //------------------------------------------------
 //  OE pin          = PA0  // user defined 
 //  Latch           = PA1  // user defined 
-//  DataIN  (MOSI)  = PA7  // bluepill SPI1 MOSI
-//  SRCLK   (SCK)   = PA5  // bluepill SPI1 CLK 
+//  DataIN          = PA7  // bluepill SPI1 MOSI
+//  SRCLK           = PA5  // bluepill SPI1 CLK 
 
 
 
 HARDWARE AND SOFTWARE EXPLANED:
 
 Basicly, using interrupts, MPU send data in "B-G-R-layer" format. Every time it sends data, it set OE_pin to HIGH when sending. Then latch new data, then set OE_pin to LOW. It is done at fixed rate:
-Lenght in microseconds of interruput = 1000000 / frames per seconds *  pow(2 , MODULATION_BIT_DEPTH) * cubesize. For example, 60 fps, 3 MBD, 8x8x8 cube is 1000000 / 60*8*8 = 260 uS . MPU need some time to actually send data, and it depends on  MPU and SPI speed. Any time MPU not spending in interrupt routine, is time spending calculating animations. The goal is to find sweet spot so animation can calculate new frame of animation by lowering framerate, lowering bit bam modulation and trying to achive as much SPI speed as possible until number of colors (or shades) is enough for animation to , not just look good, but fast enough too. Unfortunatelly, library is not optimized, as my coding skill is just one level above "hello world" example sketches. Sorry about that. Esspecially it is case for arduino. This library is slower then original Universal SR LedCube library that used as base of code (As it generated bigger-sized code, and same animations runs with slower framerate). I part-solved it for my cubes by brute-force. I just used faster STM32 CPU. And it's cheap as arduino NANO. And once i flashed stm32duino bootloader, uploading sketches to bluepill is easy as arduino. All i wanted to focus on creating animation with compatible solution for my cubes (so i don't need to write animation-per-cube code).
+Lenght in microseconds of interruput = 1000000 / frames per seconds *  pow(2 , MODULATION_BIT_DEPTH) * cubesize. For example, 60 fps, 4bit color depth, 8x8x8 cube is 1000000 / 60*8*16 = 130 uS . MPU need some time to actually send data, and it depends on  MPU and SPI speed. Any time MPU not spending in interrupt routine, is time spending calculating animations. The goal is to find sweet spot so animation can calculate new frame of animation by lowering framerate, lowering bit bam modulation and trying to achive as much SPI speed as possible until number of colors (or shades) is enough for animation to , not just look good, but fast enough too. Unfortunatelly, library is not optimized, as my coding skill is just one level above "hello world" example sketches. Sorry about that. 
+All i wanted to focus on creating animation with compatible solution for my cubes (so i don't need to write animation-per-cube code).
 
 HOW TO USE:
-
-
 
 I tried to pass as much variables to library, so it can be as universal as much. Keep in mind this is double-buffered draw. 
 It means , library will keep showing front frame buffer, untill user draw in back buffer, then use command to transfer back buffer to front buffer.
@@ -73,13 +81,13 @@ Since it have so much combination, here is some examples (with measured recommen
 // 8x8x8 RGB - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
 // 4x4x4 LED - max MODULATION_BIT_DEPTH = 8 (recommended = 6 )
 // 8x8x8 LED - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
-// SPI_speed - SPI_speed_8 (18MHz). Lower (SPI_speed_16) should be enough even for breadboard connectons
+// SPI_speed - SPI_speed_4 (18MHz) . Lower (SPI_speed_16) should be enough even for breadboard connectons
 
-//USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_8); // uncomment this if you are building for bluepill
+USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_4); 
 
 EXPLANATION OF VARIABLES AND SYNTAX:
 
-  USCL cube_name(cubesize,CUBE mode,  OE_pin, LE_pin, FPS, MODULATION_BIT_DEPTH, SPI speed)
+  USCL cube_name( cubesize, CUBE mode,  OE_pin, LE_pin, FPS, MODULATION_BIT_DEPTH, SPI speed )
   
   -cube name
             can be any name. For example"MyCube", "c", "experiment". Since it will be unique for every sketch, i recommend to pick one and stick with it. You can use "search and replace" function to rename from deafult.
@@ -94,7 +102,7 @@ EXPLANATION OF VARIABLES AND SYNTAX:
             RGB_CUBE  - for rgb cube
             LED_CUBE  - for single color led cube
   - OE_pin
-            OE pin connected to 74hc595. For arduino, it is just a (pin) number, for Bluepill original pin names can be used (PA0, PB6 etc), same as for Wemos ( D4, D3 etc)
+            OE pin connected to 74hc595. For Bluepill, original pin names can be used (PA0, PB6 etc).
   - LE_pin
             Latch pin connected to 74hc595
   - FPS
@@ -173,14 +181,14 @@ List of commands for drawing (note: it not imiadelly shown, it is drawn in back 
         red, green, blue - number for brightness (depending of max_brightness variable)
         
 -    cube_name.LED(z, x, y,  brightness); 
-        Set all colors at same brightness (white) (this is more single-color cubes, since single color cubes averages intesity of brightness when using colored animations)
+        Set all colors at same brightness (white) (this is more for single-color cubes, since single color cubes averages intesity of brightness when using colored animations)
         
 -    cube_name.RED(z, x, y,  brightness); 
-      Set only red leds 
+      Set only red leds , brightness is determined by color bit depth
 -    cube_name.GREEN(z, x, y,  brightness);
-      Set only green leds
+      Set only green leds , brightness is determined by color bit depth
 -    cube.BLUE(z, x, y,  brightness);   
-      Set only blue leds
+      Set only blue leds , brightness is determined by color bit depth
       
       
 Only few complex functions included:
@@ -198,7 +206,7 @@ Draw functions:
   
   cube.drawVoxels(true/false);    
     - true: it will use vsync (just like in you PC monitor) .  (recommended)
-    - false: do not use vsync. Can cause cube-tearing (best way to described is like this: Fast animation is drawing, and you see one frame in lower half of layers, then in upper half next frame that is already calculated. Use it on slow animations (that is , for example calculated at 5 frames per second)
+    - false: do not use vsync. Can cause cube-tearing (best way to described is like this: Fast animation is drawing, and you see one frame in lower half of layers, then in upper half next frame that is already calculated and start to show. Use it on slow animations (that is , for example calculated at 5 frames per second)
     
     
     
@@ -212,7 +220,7 @@ HINTS:
     
     
 TODO:
-Expand to support more cube sizes (or even better, different cube hight)   
+Expand to support more cube sizes, different cube hights and more microcontrollers (since it need only SPI and per-microcontroller-interrupt code)
     
     Bakisha
     
