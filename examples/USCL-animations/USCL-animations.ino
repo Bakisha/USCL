@@ -1,13 +1,13 @@
 #include<SPI.h>
 #include<USCL.h>
-//
-//  HARDWARE
-//  595             = ARDUINO                         = BLUEPILL                              = WEMOS_D1_mini
-//-----------------------------------------------------------------------------------------------------------------------
-//  OE pin          = D10  // user defined            = PA0  // user defined                  = D4 (10k PullUp; BUILTIN_LED)
-//  Latch           = D9   // user defined            = PA1  // user defined                  = D3 IO, 10k Pull-up (user defined)
-//  DataIN  (MOSI)  = D11 (MOSI)                      = PA7  // bluepill SPI1 MOSI            = D7 (MOSI)
-//  SRCLK   (SCK)   = D13 (SCK)                       = PA5  // bluepill SPI1 CLK             = D5 (CLK)
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  TESTED HARDWARE
+//  595             = BLUEPILL                              = ARDUINO  UNO,NANO,MICRO         = Leonardo (atmega32u4)         = MEGA 2560                     = WEMOS_D1_mini
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//  OE pin          = PA0  // user defined                  = D10  // user defined            = A1  // User defined           = 49  // User defined           = D0  IO - OR D4  IO, 10k Pull-up, BUILTIN_LED - user defined
+//  Latch           = PA1  // user defined                  = D9   // user defined            = A0  // User defined           = 47  // User defined           = D8  IO, 10k Pull-down, SS    - user defined
+//  DataIN  (MOSI)  = PA7  // bluepill SPI1 MOSI            = D11 (MOSI)                      = 16 MOSI                       = 51 MOSI                       = D7 (MOSI)
+//  SRCLK   (SCK)   = PA5  // bluepill SPI1 CLK             = D13 (SCK)                       = 15 SCK                        = 52 SCK                        = D5 (CLK)
 //
 // Just a reminder:
 // USB2Serial                   BLUEPILL
@@ -19,11 +19,32 @@
 //
 // Or use STM32duino bootloader for direct upload (once flashed, on my bluepill, USB upload work even with 10k R10 resistor on my motherboard (Win7 x64) ) With 330Ohm resistors for GB and 470Ohm for R, cube can be powered directly from USB
 //
+// Should work on following arduino family MPUs (Not all tested):
+//  - Arduino uno
+//  - Arduino Diecimila
+//  - Arduino Duemilanove with ATmega328
+//  - Arduino Duemilanove with ATmega168
+//  - Arduino Nano with ATmega328
+//  - Arduino Nano with ATmega168
+//  - Arduino Mega ADK
+//  - Arduino Mega with ATmega2560
+//  - Arduino Mega with Atmega1280
+//  - Arduino Leonardo
+//  - Arduino Mini with ATmega328
+//  - Arduino Mini with ATmega168
+//  - Arduino LilyPad with ATmega328
+// - Arduino LilyPad with ATmega168
+//  - Arduino Pro (mini) with ATmega328
+//  - Arduino Pro (mini) with ATmega168
+//  - Maniacbug arduino with ATmega1284p
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float animtime = 60000; // duration of animations
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 // uncomment to match your cube
+
 
 
 // wemos D1 mini
@@ -34,11 +55,13 @@ float animtime = 60000; // duration of animations
 // 8x8x8 RGB - max MODULATION_BIT_DEPTH = 2 (recommended = 2 )
 // 4x4x4 LED - max MODULATION_BIT_DEPTH = 5 (recommended = 4 )
 // 8x8x8 LED - max MODULATION_BIT_DEPTH = 4 (recommended = 3 )
-// SPI_speed - any, it is always same speed --> SLOW 
-// NOTE: Best for smaller ones, HUGE storage space for placing anymations, but low BAM bit depth. Maybe can be combined with Wifi stuff. This is just a test, not really tried on real cube  with Wemos D1 mini. I was just looking in OE pin, and it looks OK 
-// USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , D4, D3,  60 , 2, SPI_speed_8); // uncomment this if you are building for Wemos D1 mini
+// SPI_speed - any, it is always same speed --> SLOW
+// NOTE: Best for smaller ones, HUGE storage space for placing anymations, but low BAM bit depth. Maybe can be combined with Wifi stuff. This is just a test, not really tried on real cube  with Wemos D1 mini. I was just looking in OE pin, and it looks OK
+//USCL cube(CUBE_SIZE_4x4x4, RGB_CUBE , D2, D0,  30 , 3, SPI_speed_2); // uncomment this if you are building for Wemos D1 mini
 
-// Arduino (UNO, NANO, MINI) 
+
+
+// Arduino (UNO, NANO, MINI)
 // @60 fps , SPI_speed_2 ( minimum without flicker )
 // 4x4x4 RGB - max MODULATION_BIT_DEPTH = 6 (recommended = 4 )
 // 8x8x8 RGB - max MODULATION_BIT_DEPTH = 3 (recommended = 3 or 1 )
@@ -50,6 +73,29 @@ float animtime = 60000; // duration of animations
 // NOTE 3: 8x8x8 RGB, MODULATION_BIT_DEPTH 2 - doesn't work LOL dunno why, maybe low RAM?
 // NOTE 4: Untested, but should be working on Arduino MEGA(2560)
 // USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , 10, 9,  60 , 4, SPI_speed_2); // uncomment this if you are building for Arduino family
+
+// Arduino Mega2560
+// @60 fps , SPI_speed_2 ( minimum without flicker )
+// 4x4x4 RGB - max MODULATION_BIT_DEPTH = 5  (recommended = 4 )
+// 8x8x8 RGB - max MODULATION_BIT_DEPTH = 4 (recommended = 2 )
+// 4x4x4 LED - max MODULATION_BIT_DEPTH = 6 (recommended = 5 )
+// 8x8x8 LED - max MODULATION_BIT_DEPTH = 5 (recommended = 3 )
+// SPI_speed - SPI_speed - SPI_speed_2 is max (8MHz). Lower (SPI_speed_4 or SPI_speed_8) only if board is large with long wires, but MODULATION_BIT_DEPTH must decrease if it doesn't work
+// NOTE:
+// USCL cube(CUBE_SIZE_8x8x8, LED_CUBE , 49, 47,  60 , 3, SPI_speed_2); // Arduino Mega2560
+
+// Arduino Leonardo (atmega32u4)
+// @60 fps , SPI_speed_2 ( minimum without flicker )
+// 4x4x4 RGB - max MODULATION_BIT_DEPTH =  6 (recommended = 4  )
+// 8x8x8 RGB - max MODULATION_BIT_DEPTH =  3 (recommended = 2  )
+// 4x4x4 LED - max MODULATION_BIT_DEPTH =  7 (recommended =  4 )
+// 8x8x8 LED - max MODULATION_BIT_DEPTH =  4 (recommended = 3  )
+// SPI_speed - SPI_speed - SPI_speed_2 is max (8MHz). Lower (SPI_speed_4 or SPI_speed_8) only if board is large with long wires, but MODULATION_BIT_DEPTH must decrease if it doesn't work
+// NOTE: LOW flash memory for all animations. Make your pick
+// NOTE2: This one was PITA to upload sketch
+// USCL cube(CUBE_SIZE_4x4x4, RGB_CUBE , A1, A0,  60 , 4, SPI_speed_2); // atmega32u4
+
+
 
 // STM32F1 (Bluepill, Blackpill)
 // Add this adress to your board manager, search: stm32duino
@@ -63,16 +109,16 @@ float animtime = 60000; // duration of animations
 // NOTE: My Favorite :-)
 // NOTE 2:
 // NOTE 3:
-//USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_8);
-USCL cube(CUBE_SIZE_4x4x4, RGB_CUBE , PA0, PA1,  60 , 5, SPI_speed_4);
+//USCL cube(CUBE_SIZE_8x8x8, RGB_CUBE , PA0, PA1,  60 , 4, SPI_speed_4);
+USCL cube(CUBE_SIZE_4x4x4, RGB_CUBE , PA0, PA1,  60 , 7, SPI_speed_2);
 
 //
 /*
- * 
- * 
- * 
- * 
- */
+
+
+
+
+*/
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -101,11 +147,11 @@ void rotating_circles(float time, USCL & cube, unsigned int drawDelay)
   int cubesize = cube.getCubeSize();
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() ;
   int delay_FPS = 1000 / FPS;
   float S = 1.0;
   float V = 1.0;
-  int hue;
+  int hue = 0;
 
 
   // Declare and initialize other variables needed for the animation
@@ -113,8 +159,8 @@ void rotating_circles(float time, USCL & cube, unsigned int drawDelay)
   // 3d matrix for points to draw
   ///////////////////////////////////////////// numbers to play with :-) ///////////////////////////////////////////////
   const int number_of_points = 9; //  total number of points to draw
-  const int  number_of_circles = (cubesize / 4) + 1; // number of rotating circles
-  float angle_speed_x = 1.0 * 2.0 * PI / (2.0 * FPS) ; // speed of x,y,z rotation // variable number is amount of seconds that axis rotate in 1 second
+  int  number_of_circles = 2; //(cubesize / 4) + 1; // number of rotating circles
+  float angle_speed_x = 1.0 * 2.0 * PI / (3.0 * FPS) ; // speed of x,y,z rotation // variable number is amount of seconds that axis rotate in 1 second
   float angle_speed_y = 1.0 * 2.0 * PI / (90.0 * FPS); // experiment with these values for best effect
   float angle_speed_z = 1.0 * 2.0 * PI / (30.0 * FPS);
   float zoom = 1.0 ; // variable for zooming in/out // for now, it is not per x,y,z, but one for all
@@ -123,31 +169,10 @@ void rotating_circles(float time, USCL & cube, unsigned int drawDelay)
   float zoom_min = 0.5;
   float zoom_max = 1.2; // try to keep points inside cubesize value
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  float half_cubesize = cubesize / 2.0;
+  float half_cubesize = float(cubesize / 2.0);
   // matrix for initial points to be drawn, in this case, it's a   ----   circle  -----
   float point [number_of_points] [3] =
 
-    /*// a float matrix, must be same number as integer number_of_points
-      {
-      { 0, sin(0.00 * PI / 8.00), cos(0.00 * PI / 8.00)},
-      //   { 0, sin(1.00 * PI / 8.00), cos(1.00 * PI / 8.00)},
-      { 0, sin(2.00 * PI / 8.00), cos(2.00 * PI / 8.00)},
-      //   { 0, sin(3.00 * PI / 8.00), cos(3.00 * PI / 8.00)},
-      { 0, sin(4.00 * PI / 8.00), cos(4.00 * PI / 8.00)},
-      //   { 0, sin(5.00 * PI / 8.00), cos(5.00 * PI / 8.00)},
-      { 0, sin(6.00 * PI / 8.00), cos(6.00 * PI / 8.00)},
-      //   { 0, sin(7.00 * PI / 8.00), cos(7.00 * PI / 8.00)},
-      { 0, sin(8.00 * PI / 8.00), cos(8.00 * PI / 8.00)},
-      //   { 0, sin(9.00 * PI / 8.00), cos(9.00 * PI / 8.00)},
-      { 0, sin(10.00 * PI / 8.00), cos(10.00 * PI / 8.00)},
-      //  { 0, sin(11.00 * PI / 8.00), cos(11.00 * PI / 8.00)},
-      { 0, sin(12.00 * PI / 8.00), cos(12.00 * PI / 8.00)},
-      //   { 0, sin(13.00 * PI / 8.00), cos(13.00 * PI / 8.00)},
-      { 0, sin(14.00 * PI / 8.00), cos(14.00 * PI / 8.00)},
-      //   { 0, sin(15.00 * PI / 8.00), cos(15.00 * PI / 8.00)},
-      { 0, sin(0.00 * PI / 8.00), cos(0.00 * PI / 8.00)}
-      };  // -1, +1 boundary
-    */
     // a float matrix, must be same number as integer number_of_points
   {
     {  sin(0.00 * PI / 8.00), 0, cos(0.00 * PI / 8.00)},
@@ -174,9 +199,10 @@ void rotating_circles(float time, USCL & cube, unsigned int drawDelay)
   float z, z1, z2, z3;
   //  int xx, yy, zz;
 
-  int hue_fps ; // color
+  int hue_fps = 0 ; // color
   int i, j; // temps and counters
   float temp1, temp2, temp3;
+
 
 
   float startTime = millis();
@@ -264,7 +290,9 @@ void rotating_circles(float time, USCL & cube, unsigned int drawDelay)
 
     ////////////////////////////////////////// draw leds
     cube.drawVoxels(); // Draw the frame to the cube explicitly using vsync
-    delay(drawDelay);
+    if (drawDelay > 0) {
+      delay(drawDelay);
+    }
     /////////////////////////////////////////////////
 
     angle_x = angle_x + angle_speed_x;
@@ -303,18 +331,18 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
 
   int cubesize = cube.getCubeSize();
   int max_brightness = cube.getMaxBrightness();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int maxVoxelValue = cubesize - 1;
   float S = 1;
   float V = 1;
-  int hue;
+  int hue = 0;
 
   // Declare and initialize other variables needed for the animation
 
   // 3d matrix for points to draw
-  float half_cubesize = cubesize / 2.0;
-  const int number_of_points_star = 10; //  total number of points to draw
+  float half_cubesize = float(cubesize / 2.0);
+  const int number_of_points_star = 11; //  total number of points to draw
   float inner_r = 0.5; // iner circle of a star
   float outer_r = 1.0; // outer circle of a star
   // star coordinates taken from https://www.codeproject.com/Articles/18149/Draw-a-US-Flag-using-C-and-GDI
@@ -331,7 +359,8 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
     {  -outer_r * sin(2 * PI / 10), outer_r * cos(2 * PI / 10), 0},
     { -inner_r * sin(2 * PI / 5), inner_r * cos(2 * PI / 5), 0},
     { -outer_r * sin(2 * PI / 5),   -outer_r * cos(2 * PI / 5), 0},
-    { -inner_r * sin(2 * PI / 10),  -inner_r * cos(2 * PI / 10), 0}
+    { -inner_r * sin(2 * PI / 10),  -inner_r * cos(2 * PI / 10), 0},
+    { 0, -outer_r, 0}
   };  // star is in -1, +1 boundary
 
 
@@ -357,7 +386,7 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
   float z, z1, z2, z3;
   //  int xx, yy, zz;
 
-  int hue_fps ; // color
+  int hue_fps = 0; // color
   int i, j; // temps and counters
 
 
@@ -392,7 +421,7 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
     if (hue_fps >  FPS)
     {
       hue_fps = 0;
-      hue = hue +  max_brightness / 4;
+      hue = hue +  1; // max_brightness / 4;
       if (hue > 360 ) {
         hue = 0;
       }
@@ -418,14 +447,6 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
       // now draw a line from point to point
       cube.HSV_line(z1, x1, y1, z2, x2, y2, hue , S, V);
     } // i
-    x1 = xx [number_of_points_star - 1] ;
-    x2 = xx [0 ] ;
-    y1 = yy [number_of_points_star - 1];
-    y2 = yy [0] ;
-    z1 = zz [number_of_points_star - 1] ;
-    z2 = zz [0] ;
-    // now draw a line from point to point
-    cube.HSV_line(z1, x1, y1, z2, x2, y2, hue, S, V);
 
 
     angle_x = angle_x + angle_speed_x;
@@ -450,7 +471,9 @@ void rotating_star(float time, USCL & cube, unsigned int drawDelay)
 
     ////////////////////////////////////////// draw leds
     cube.drawVoxels(); // Draw the frame to the cube explicitly using vsync
-    delay(drawDelay);
+    if (drawDelay > 0) {
+      delay(drawDelay);
+    }
     /////////////////////////////////////////////////
 
 
@@ -468,7 +491,7 @@ void rotating_cube(float time, USCL & cube, unsigned int drawDelay)
   */
 
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -519,11 +542,11 @@ void rotating_cube(float time, USCL & cube, unsigned int drawDelay)
   int i, j; // temps and counters
 
 
+
   long startTime = millis();
   while (millis() - startTime < time)
   {
     ///////////////////
-
     for (i = 0; i < number_of_points; i++) {
 
       x = point [i] [0]; // x from point matrix
@@ -566,7 +589,7 @@ void rotating_cube(float time, USCL & cube, unsigned int drawDelay)
     if (hue_fps >  FPS)
     {
       hue_fps = 0;
-      hue = hue +  max_brightness / 2;
+      hue = hue +  cubesize / 2;
       if (hue > 360 / 2) {
         hue = 0;
       }
@@ -687,6 +710,7 @@ void rotating_cube(float time, USCL & cube, unsigned int drawDelay)
       angle_z = 0;
     }
 
+
     ////////////////////////////////////////// draw leds
     cube.drawVoxels(); // Draw the frame to the cube explicitly using vsync
     delay(drawDelay);
@@ -709,7 +733,7 @@ void plasma_sinx2y2(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
 
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   byte maxVoxelValue = cubesize - 1;
@@ -769,7 +793,7 @@ void plasma_sinx2y2(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
           fz = sin(zz + (xmap[int(z)]) / 1000.0) ;
           fy = cos(yy + (xmap[int(y)] / 1000.0));
 
-          br = map(br, -10000, 10000, 1, 10000 / max_brightness);
+          br = map(br, -10000, 10000, 1, 10000 );
 
           plasma = 180 + 60 * (fx + fz + fy) ;
           cube.HSV(z, x, y, plasma, 1, float(br) / 100.00);
@@ -824,7 +848,7 @@ void plasma_sineWave(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, ui
   */
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -948,7 +972,7 @@ void plasma5(float time, USCL & cube, uint16_t shiftDelay)
   // Declare and initialize other variables needed for the animation
   //  float omega = (2.0 * PI) / (2 * cube.getCubeSize()); // Calculate the radial frequency omega
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
 
@@ -1000,7 +1024,7 @@ void plasma5(float time, USCL & cube, uint16_t shiftDelay)
           plasma = 180 + 70 * (fx + fz + fy) ; // *max=3
           if (plasma >= 0.0) {
             if (plasma <= 360.0 ) {
-              cube.HSV( z, x, y, plasma   , 1.0, 0.1);
+              cube.HSV( z, x, y, plasma   , 1.0, float( 1.1 / max_brightness) );
             }
           }
         }//  y
@@ -1056,7 +1080,7 @@ void plasma4(float time, USCL & cube, uint16_t shiftDelay)
   // Declare and initialize other variables needed for the animation
   //  float omega = (2.0 * PI) / (2 * cube.getCubeSize()); // Calculate the radial frequency omega
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
 
@@ -1154,7 +1178,7 @@ void RandomLedFade(float time, USCL & cube, unsigned char numberOfVoxels, unsign
   */
 
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1247,7 +1271,7 @@ void color_wheelTWO(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1362,7 +1386,7 @@ void sineWaveThree(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint
   */
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1381,7 +1405,7 @@ void sineWaveThree(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint
 
   // Other variables
   float timeCount = 0;
-  float sineOffset = (maxVoxelValue) / 4.0;
+  float sineOffset = float((maxVoxelValue) / 4.0);
   float omegaAlpha = (2.0 * PI) / (float)period;
   float omegaBeta = (2.0 * PI) / ((float)period * baseWavePeriodicFactor);
   float omegaZ = (2.0 * PI) / (float)maxVoxelValue;
@@ -1391,7 +1415,7 @@ void sineWaveThree(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint
   long  startTime = millis();
   while (millis() - startTime < time)
   {
-    for (hue = 0; hue < 360 - (max_brightness * cubesize); hue++)
+    for (hue = 0; hue < 360; hue++)
     {
       for (i = timeCount; i < (timeCount + cubesize); i++)
       {
@@ -1400,7 +1424,8 @@ void sineWaveThree(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint
         for (j = 0; j < cubesize; j++)
         {
           y = j;
-          cube.HSV(z, x, y, hue + max_brightness * z * (sin( (z * omegaZ ))), 1, 1);
+          V = 0.5 +   sin( (2.0 * PI) / (z + 1) );
+          cube.HSV(z, x, y, hue , 1, V);
         }
       }
 
@@ -1432,7 +1457,7 @@ void sineWave(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_t p
   */
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1459,7 +1484,7 @@ void sineWave(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_t p
   long  startTime = millis();
   while (millis() - startTime < time)
   {
-    for (hue = 0; hue < 360 - (max_brightness * cubesize); hue++)
+    for (hue = 0; hue < 360 ; hue++)
     {
 
       for (i = timeCount; i < (timeCount + cubesize); i++)
@@ -1469,7 +1494,8 @@ void sineWave(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_t p
         for (j = 0; j < cubesize; j++)
         {
           y = j;
-          cube.HSV(z, x, y, hue + max_brightness * z * (sin( (z * omegaZ ))), 1, 1);
+          V = 0.5 +   sin( (2.0 * PI) / (z + 1) );
+          cube.HSV(z, x, y, hue , 1, V);
         }
       }
       cube.drawVoxels();
@@ -1499,7 +1525,7 @@ void sineWaveTwo(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1528,7 +1554,7 @@ void sineWaveTwo(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_
   while (millis() - startTime < time)
   {
 
-    for (hue = 0; hue < 360 - (max_brightness * cubesize); hue++)
+    for (hue = 0; hue < 360 ; hue++)
     {
       for (i = timeCountX; i < (timeCountX + cubesize); i++)
       {
@@ -1539,8 +1565,8 @@ void sineWaveTwo(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, uint8_
           z = round(sineOffset * (sin(i * omegaX)  - sin(j * omegaY + PI)) + 2 * sineOffset); // Calculate z position
           // hue = round (180 + max_brightness * sin(sineOffset * (sin( (i * omegaX - j * omegaY)))));
 
-
-          cube.HSV(z, x, y, hue + max_brightness * z * (sin( (z * omegaZ ))), 1, 1);
+          V = 0.5 +   sin( (2.0 * PI) / (z + 1) );
+          cube.HSV(z, x, y, hue , 1, V);
         }
       }
 
@@ -1583,7 +1609,7 @@ void snake(float time, USCL & cube, int shiftDelay, uint16_t iterations,  unsign
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -1967,7 +1993,7 @@ void plasma3(float time, USCL & cube, int shiftDelay)
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -2094,7 +2120,7 @@ void    wipeout(float time, USCL & cube, unsigned int drawDelay)
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -2230,7 +2256,7 @@ void MY_4D_function2(float time, USCL & cube, int shiftDelay)
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -2265,7 +2291,7 @@ void MY_4D_function2(float time, USCL & cube, int shiftDelay)
             ipsilon = 10000 *  sin(offset + sin(offset * sin((x * y - z) / (2 * PI)   ) ));
             hue =  map(ipsilon, -10000, 10000, 0, 360);
             if (plasma > 0) {
-              cube.HSV(z, x, y, hue, 1, plasma / 10000.00);
+              cube.HSV(z, x, y, hue, 1, float(plasma / 10000.00));
             }
           }
         }
@@ -2307,7 +2333,7 @@ void MY_4D_function1 (float time, USCL & cube, uint16_t shiftDelay)
   */
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -2353,8 +2379,7 @@ void MY_4D_function1 (float time, USCL & cube, uint16_t shiftDelay)
 
 
       cube.drawVoxels();
-      //  Serial.println(hue_min);
-      //  Serial.println(hue_max);
+
       if (shiftDelay > 0) {
         delay(shiftDelay);
       }
@@ -2369,69 +2394,6 @@ void MY_4D_function1 (float time, USCL & cube, uint16_t shiftDelay)
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//
-/* MY_4D_function_min_max cube parameters
-  - time:                 Define the length of time that the animation should be executed.
-  - cube:            Define the instance of the 'LedCube' class that you made in your main program.
-  - shiftDelay (optional):    Define the delay (in ms) . Normally a value of 50 - 100 ms will suffice.
-  -function: send via serial minimum and maximum values of function
-*/
-void MY_4D_function_min_max (float time, USCL & cube, uint16_t shiftDelay)
-{
-  // usual  variables
-  byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
-  int delay_FPS = 1000 / FPS;
-  int max_brightness = cube.getMaxBrightness();
-  byte maxVoxelValue = cubesize - 1;
-  float S = 1;
-  float V = 1;
-  float hue = 180;
-  int int_hue;
-
-  float  hue_min = 32000.0;
-  float hue_max = -32000.0;
-
-
-
-
-
-  float  startTime = millis();
-  while (millis() - startTime < time)
-  {
-    ///////////////////
-
-    for (   float a = -cubesize; a < 2 * cubesize; a = a + 0.3)
-    {
-      for ( int x = 0; x <  cubesize ; x++)
-      {
-        for ( int y = 0; y < cubesize; y++)
-        {
-          for ( int z = 0 ; z <  cubesize ; z++ )
-          {
-            // hue = (x + a) * 2.0 - ( (y + a) / 2.0 ) + (((z + a) * 3.5) / 2.0);
-            hue = (x + a) * (x + a) + (y + a) * (y + a) + (z + a) * (z + a); // min : 0  ; max : 343.47
-
-            if (hue < hue_min) hue_min = hue;
-            if (hue > hue_max) hue_max = hue;
-            Serial.println(hue);
-
-          }//  z
-        }  //  y
-      }    //  x
-
-    } // a
-    ///////////////////////
-
-
-    Serial.println(hue_min);
-    Serial.println(hue_max);
-
-    delay(10000);
-
-  } // While
-}// void
 
 // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2446,7 +2408,7 @@ void sinx2y2(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
 
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   byte maxVoxelValue = cubesize - 1;
@@ -2477,11 +2439,11 @@ void sinx2y2(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
           // y=sin(z * omega + offset ) * cos( x * omega + offset  );
           float     z   = map(ipsilon, -10000, 10000, 0, cubesize);
 
-          float      br = 10000 * sin(x * omega + offset / 0.55  );
+          float      br = 0.5 + 0.5 * sin(x * omega + offset / 0.55  );
 
 
-          br = map(br, -10000, 10000, 1, 10000 / max_brightness);
-          cube.HSV(z, x, y, hue, 1, float(br) / 100.00);
+
+          cube.HSV(z, x, y, hue, 1, br);
         }
       }
       cube.drawVoxels();
@@ -2511,7 +2473,7 @@ void slantingLines(float time, USCL & cube, uint16_t shiftDelay /* = 75 */, bool
 
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   uint8_t maxVoxelValue = cube.getCubeSize() - 1;
@@ -2605,7 +2567,7 @@ void fireworks(float time, USCL & cube,  int n, int shiftDelay)
   */
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   byte maxVoxelValue = cubesize - 1;
@@ -2765,7 +2727,7 @@ void cornerCube(float time, USCL & cube, uint16_t resizeDelay /* =75 */, uint8_t
   // Other variables
   uint8_t maxVoxelValue = cube.getCubeSize() - 1;
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   uint8_t cubeSize = cube.getCubeSize() - 1;
   int max_brightness = cube.getMaxBrightness();
@@ -2827,7 +2789,7 @@ void cornerCube(float time, USCL & cube, uint16_t resizeDelay /* =75 */, uint8_t
 
       hue = hue + 1;
       if (hue > 360 - cubesize) {
-        hue = max_brightness;
+        hue = 0;
       }
 
       // Calculate needed offset according to the corner select bits (LSB numbering)
@@ -2854,7 +2816,7 @@ void plasma2(float time, USCL & cube, int shiftDelay)
 
   // usual  variables
   int cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -2984,7 +2946,7 @@ void rain(float time, USCL & cube, int rainVoxels /* = 2 */, int floorVoxels /* 
 
   // usual  variables
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   byte maxVoxelValue = cubesize - 1;
@@ -3115,7 +3077,7 @@ void explodingimplodingsphere(float time, USCL & cube, uint16_t shiftDelay /* = 
   // Declare and initialize other variables needed for the animation
   // float omega = (2.0 * PI) / (2 * cube.getCubeSize()); // Calculate the radial frequency omega
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3304,7 +3266,7 @@ void explodingsphere(float time, USCL & cube, uint16_t shiftDelay /* = 75 */)
                     50 - 100 ms will suffice.
   */
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3401,7 +3363,7 @@ void folder(float time, USCL & cube, uint16_t shiftDelay)
 
 
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3620,7 +3582,7 @@ void starfield(float time, USCL & cube, uint8_t stars,  uint16_t shiftDelay)
   */
   // Declare and initialize other variables needed for the animation
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3715,7 +3677,7 @@ void plasma1(float time, USCL & cube, uint16_t shiftDelay)
   // Declare and initialize other variables needed for the animation
   //  float omega = (2.0 * PI) / (2 * cube.getCubeSize()); // Calculate the radial frequency omega
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   int max_brightness = cube.getMaxBrightness();
 
@@ -3821,7 +3783,7 @@ void plasma1(float time, USCL & cube, uint16_t shiftDelay)
 void test (float time, USCL & cube, uint16_t shiftDelay)
 {
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   float max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3879,7 +3841,7 @@ void test (float time, USCL & cube, uint16_t shiftDelay)
 void HSV_test (float time, USCL & cube, uint16_t shiftDelay)
 {
   byte cubesize = cube.getCubeSize();
-  int FPS = cube.getFPS();
+  int FPS = cube.getFPS() / 2;
   int delay_FPS = 1000 / FPS;
   float max_brightness = cube.getMaxBrightness();
   int maxVoxelValue = cubesize - 1;
@@ -3941,7 +3903,7 @@ void HSV_test (float time, USCL & cube, uint16_t shiftDelay)
 
 void setup()
 {
-  
+
   //Start the cube
   cube.begin();
 }
@@ -3954,6 +3916,7 @@ void loop()
   int frames =  cube.getFPS();
   int delay_FPS = 1000 / frames;
   int j = 1 + random(8);
+
   rotating_circles(animtime, cube,   0 * delay_FPS); // animation time lenght, cube, delay time
   rotating_star(animtime, cube,   0 * delay_FPS); // animation time lenght, cube, delay time
   rotating_cube(animtime, cube,   0 * delay_FPS); // animation time lenght, cube, delay time
