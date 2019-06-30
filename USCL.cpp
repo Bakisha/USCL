@@ -245,7 +245,7 @@ timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
   //    delayMicroseconds(1);
  
 
-
+/*
 _zPositionCounter++;
 if (_zPositionCounter >= _cubeSize)
 {
@@ -263,8 +263,31 @@ if (_zPositionCounter >= _cubeSize)
   }
   _modulationBitValue = myPow(2, _modulationOffset);
 }
+*/
 
+_modulationCounter++;
+	if(_modulationCounter == _modulationBitValue)
+	{
+		_modulationCounter = 0;
+		_modulationOffset++;
+		if(_modulationOffset == MODULATION_BIT_DEPTH)
+		{
+			_modulationOffset = 0;
+			_zPositionCounter++;
+			if(_zPositionCounter >= _cubeSize)
+			{
+				_zPositionCounter = 0;
+				pageFlipBuffering();
+			}
+		}
+		_modulationBitValue = myPow(2, _modulationOffset);
+	}
+
+
+
+delayMicroseconds(1);        // tweak
 digitalWrite(_LE_pin, LOW); 
+delayMicroseconds(2);        // tweak
  digitalWrite(_OE_pin, LOW); //  almout at the end IRQ, time to enable OE
 }
 
