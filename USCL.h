@@ -19,11 +19,12 @@
 #include <inttypes.h>
 
 // Supported cube sizes
-#define CUBE_SIZE_4x4x4 0x04
-#define CUBE_SIZE_5x5x5 0x05
-#define CUBE_SIZE_6x6x6 0x06
-#define CUBE_SIZE_7x7x7 0x07
-#define CUBE_SIZE_8x8x8 0x08
+// from
+// 1x1x1  
+// to
+// 128x128x128
+
+
 
 // Suported SPI clock speed (CPU Frequency / number )
 #define SPI_speed_2 SPI_CLOCK_DIV2
@@ -32,6 +33,7 @@
 #define SPI_speed_16 SPI_CLOCK_DIV16
 #define SPI_speed_32 SPI_CLOCK_DIV32
 #define SPI_speed_64 SPI_CLOCK_DIV64
+#define SPI_speed_128 SPI_CLOCK_DIV128
 
 #define RGB_CUBE 0x01
 #define LED_CUBE 0x00
@@ -54,7 +56,7 @@ typedef struct
 class USCL
 {
   public:
-    USCL(uint8_t cubeSize,  uint8_t cube_mode , uint16_t LE_pin, uint16_t OE_pin, uint16_t fps, int MODULATION_BIT_DEPTH , uint32_t SPI_speed);
+    USCL(uint8_t cubeSizeX, uint8_t cubeSizeY, uint8_t cubeSizeZ, uint8_t cube_mode , uint16_t LE_pin, uint16_t OE_pin, uint16_t fps, int MODULATION_BIT_DEPTH , uint32_t SPI_speed);
     ~USCL(void);
 
     void begin(void);
@@ -78,9 +80,15 @@ class USCL
 
     // Accessors
 
-    uint8_t getCubeSize() const {
-      return _cubeSize;
+    uint8_t getCubeSizeX() const {
+      return _cubeSizeX;
     }
+     uint8_t getCubeSizeY() const {
+      return _cubeSizeY;
+    }
+    uint8_t getCubeSizeZ() const {
+      return _cubeSizeZ;
+    }       
     uint8_t getFPS() const {
       return _fps;
     }
@@ -110,8 +118,12 @@ class USCL
     uint32_t _SPI_speed;
     uint16_t _ISR_microseconds;
     uint16_t _fps;
-    uint8_t _cubeSize;
-    uint8_t _maxVoxelValue;
+    uint8_t _cubeSizeX;
+    uint8_t _cubeSizeY;
+    uint8_t _cubeSizeZ;        
+    uint8_t _maxVoxelValueX;
+    uint8_t _maxVoxelValueY;    
+    uint8_t _maxVoxelValueZ;    
     uint8_t *_voxelMappingFrontBuffer_R;
     uint8_t *_voxelMappingBackBuffer_R;
     uint8_t *_voxelMappingFrontBuffer_G;
@@ -126,6 +138,8 @@ class USCL
     uint8_t _maxBrightness;
     uint8_t _modulationOffset;
     uint8_t _globalBrightnessDecrease;
+    
+     uint8_t _cubeSize;
 
     volatile bool _invokeBufferSwap;
     bool _autoClearBackBuffer;

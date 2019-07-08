@@ -38,7 +38,7 @@ USCL *USCL::_objPtr = 0;
 
 // Macros
 
-#define VOXELMAPPING_ARR_LAYER_SIZE ceil((_cubeSize * _cubeSize) / 8.0)
+#define VOXELMAPPING_ARR_LAYER_SIZE ceil((_cubeSizeX * _cubeSizeY) / 8.0)
 
 int _LE_pin ;  // just declare it
 int _OE_pin ;
@@ -48,7 +48,7 @@ uint8_t _cube_mode;
 uint32_t now = 0; // for wemos d1 mini interrupt
 
 // Constructor
-USCL::USCL(uint8_t cubeSize, uint8_t cube_mode , uint16_t OE_pin, uint16_t LE_pin, uint16_t fps, int _MODULATION_BIT_DEPTH , uint32_t SPI_speed )
+USCL::USCL(uint8_t cubeSizeX, uint8_t cubeSizeY, uint8_t cubeSizeZ, uint8_t cube_mode , uint16_t OE_pin, uint16_t LE_pin, uint16_t fps, int _MODULATION_BIT_DEPTH , uint32_t SPI_speed )
 {
 
   // Set variables
@@ -57,10 +57,14 @@ USCL::USCL(uint8_t cubeSize, uint8_t cube_mode , uint16_t OE_pin, uint16_t LE_pi
   _OE_pin = OE_pin;
   _LE_pin = LE_pin;
   MODULATION_BIT_DEPTH = _MODULATION_BIT_DEPTH;
-  _cubeSize = cubeSize;
-  _maxVoxelValue = cubeSize - 1;
+  _cubeSizeX = cubeSizeX;
+  _cubeSizeY = cubeSizeY;
+  _cubeSizeZ = cubeSizeZ;
+  _maxVoxelValueX = cubeSizeX - 1;
+  _maxVoxelValueY = cubeSizeY - 1;
+  _maxVoxelValueZ = cubeSizeZ - 1;
   _layerArrSize = VOXELMAPPING_ARR_LAYER_SIZE;
-  _cubeArrSize = _layerArrSize * cubeSize;
+  _cubeArrSize = _layerArrSize * cubeSizeZ;
   _voxelMappingFrontBuffer_R = 0;
   _voxelMappingBackBuffer_R = 0;
   _voxelMappingFrontBuffer_G = 0;
@@ -74,6 +78,25 @@ USCL::USCL(uint8_t cubeSize, uint8_t cube_mode , uint16_t OE_pin, uint16_t LE_pi
   _maxBrightness = myPow(2, MODULATION_BIT_DEPTH) - 1;
   _invokeBufferSwap = false;
   _autoClearBackBuffer = true;
+
+  if (_cubeSizeX > _cubeSizeY)
+  {
+    _cubeSize == _cubeSizeX;
+    if (_cubeSizeZ > _cubeSizeX)
+    {
+      _cubeSize = _cubeSizeZ;
+    }
+  }
+
+  if (_cubeSizeY > _cubeSizeX)
+  {
+    _cubeSize == _cubeSizeY;
+    if (_cubeSizeZ > _cubeSizeY)
+    {
+      _cubeSize = _cubeSizeZ;
+    }
+  }
+
 
   if (fps > 0)
     _fps = fps;
@@ -106,7 +129,7 @@ void USCL::begin(void)
   //initInterrupt();
   // Calculate prescaler and timer counter
 
-  _refreshFrequency = (pow(2, MODULATION_BIT_DEPTH) * _cubeSize  * _fps);
+  _refreshFrequency = (pow(2, MODULATION_BIT_DEPTH) * _cubeSizeZ  * _fps);
   double period = 1.0 / _refreshFrequency;
   Prescaler prescaler = calcPrescaler(period);
   uint16_t timerCounter = period / ((double)prescaler.value / F_CPU);
@@ -126,7 +149,7 @@ void USCL::begin(void)
 
 #ifdef __STM32F1__// bluepill
   // Setup IRQ Timer
-  _ISR_microseconds = 1000000 / (pow(2, MODULATION_BIT_DEPTH) * _cubeSize  * _fps);
+  _ISR_microseconds = 1000000 / (pow(2, MODULATION_BIT_DEPTH) * _cubeSizeZ  * _fps);
   noInterrupts();// kill interrupts until everybody is set up
   Timer2.setMode(TIMER_CH1, TIMER_OUTPUTCOMPARE);
   Timer2.setPeriod(_ISR_microseconds); // in microseconds
@@ -136,15 +159,15 @@ void USCL::begin(void)
 #endif
 
 #ifdef ESP8266
-  _ISR_microseconds = 1000000 / (pow(2, MODULATION_BIT_DEPTH) * _cubeSize  * _fps);
-  now=_ISR_microseconds;
-	noInterrupts();
+  _ISR_microseconds = 1000000 / (pow(2, MODULATION_BIT_DEPTH) * _cubeSizeZ  * _fps);
+  now = _ISR_microseconds;
+  noInterrupts();
   timer0_isr_init();
   timer0_attachInterrupt(handleInterrupt);
   timer0_write(ESP.getCycleCount() + _ISR_microseconds * 80); // 160 when running at 160mhz
   interrupts();
-  #endif
-  
+#endif
+
 
 
   SPI.begin();
@@ -215,12 +238,12 @@ inline void USCL::pageFlipBuffering(void)
 inline void USCL::refreshData(void)
 {
 #ifdef ESP8266 // for WEMOS D1 mini
-timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz 
+  timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
 #endif
-  
+
   digitalWrite(_OE_pin, HIGH); // Clear all data   // to keep BAM PWM accurate LEDs are not shown during transfer
   //  delayMicroseconds(1); // in case of OE signal doesn't travel to last 595 before transfer //
- 
+
   uint16_t offset = _zPositionCounter * _layerArrSize + _modulationOffset * _cubeArrSize;
   if (_cube_mode == RGB_CUBE)
   {
@@ -232,16 +255,25 @@ timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
   for (uint8_t i = _layerArrSize; i-- > 0;)
     SPI.transfer(_voxelMappingFrontBuffer_R[ i + offset]);  // send red last
 
-  SPI.transfer((1 << _zPositionCounter)); // Send Current layer byte
+
+  for (int j = 0; j < ((_cubeSizeZ - 1) / 8 + 1); j++ )
+  {
+
+    if ( j == ((_zPositionCounter) / 8) )
+    {
+
+      // % - moduo - remaining of result from integer division
+      SPI.transfer(byte((1 << (_zPositionCounter % 8)))); // send curent layer byte //
+    }
+    else
+    {
+      SPI.transfer(byte((0 << (_zPositionCounter % 8)))); // not in current byte, so send 0
+    }
+
+  }
 
 
 
-
-/*
-_zPositionCounter++;
-if (_zPositionCounter >= _cubeSize)
-{
-  _zPositionCounter = 0;
   _modulationCounter++;
   if (_modulationCounter == _modulationBitValue)
   {
@@ -250,43 +282,29 @@ if (_zPositionCounter >= _cubeSize)
     if (_modulationOffset == MODULATION_BIT_DEPTH)
     {
       _modulationOffset = 0;
-      pageFlipBuffering();
+      _zPositionCounter++;
+      if (_zPositionCounter >= _cubeSizeZ)
+      {
+        _zPositionCounter = 0;
+        pageFlipBuffering();
+      }
     }
+    _modulationBitValue = myPow(2, _modulationOffset);
   }
-  _modulationBitValue = myPow(2, _modulationOffset);
-}
-*/
 
-_modulationCounter++;
-	if(_modulationCounter == _modulationBitValue)
-	{
-		_modulationCounter = 0;
-		_modulationOffset++;
-		if(_modulationOffset == MODULATION_BIT_DEPTH)
-		{
-			_modulationOffset = 0;
-			_zPositionCounter++;
-			if(_zPositionCounter >= _cubeSize)
-			{
-				_zPositionCounter = 0;
-				pageFlipBuffering();
-			}
-		}
-		_modulationBitValue = myPow(2, _modulationOffset);
-	}
-
-
-// Latch the data
-   digitalWrite(_LE_pin, HIGH);
+  //delayMicroseconds(1); //  clock before latch tweaks
+  // Latch the data
+  digitalWrite(_LE_pin, HIGH);
   //    delayMicroseconds(1); //  tweaks
   // This part is tricky. Latch must last long enough that signal at last 595 stay ON long enough for data to be latched. It is not much problem for small cubes, as it is for bigger ones
   // and that's why digitalWrite is here. It is not just poor programming skills, it NEED to be slow enough. And yes, i have poor programming skills :-)
+  // don't ask me to write faster code for arduino. It have 4 digitalWrite() commands, so in total 12uS wasted. So it is around less then 50uS long. Not worth the effort.
 
 
-delayMicroseconds(2);        // latch tweak
-digitalWrite(_LE_pin, LOW);  // ok, now is the time to release latch
-delayMicroseconds(2);        // tweak
- digitalWrite(_OE_pin, LOW); //  almout at the end IRQ, time to enable OE
+  //delayMicroseconds(2);        // latch tweak
+  digitalWrite(_LE_pin, LOW);  // ok, now is the time to release latch
+  //delayMicroseconds(1);        // tweak
+  digitalWrite(_OE_pin, LOW); //  almout at the end IRQ, time to enable OE
 }
 
 // Interrupt handler
@@ -316,7 +334,7 @@ void USCL::HSV(uint8_t z, uint8_t x, uint8_t y, int hue, float sat , float val)
 
   if (z >= 128)
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -326,7 +344,7 @@ void USCL::HSV(uint8_t z, uint8_t x, uint8_t y, int hue, float sat , float val)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -335,7 +353,7 @@ void USCL::HSV(uint8_t z, uint8_t x, uint8_t y, int hue, float sat , float val)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -345,15 +363,16 @@ void USCL::HSV(uint8_t z, uint8_t x, uint8_t y, int hue, float sat , float val)
   // HSV2RGB
   ////////////////////////////////////
   // Make sure our arguments stay in-range
-  if (hue<0) hue=0;
-  if (hue>359) hue = 359;
+  if (hue < 0) hue = 0;
+  if (hue > 359) hue = 359;
   //hue = max(0, min(360, hue));
-  if (sat<0.0) sat=0.0;
-  if (sat>1.0) sat = 1.0;
+  if (sat < 0.0) sat = 0.0;
+  if (sat > 1.0) sat = 1.0;
   //sat = max(0, min(1.0, sat));
-    if (val<0) val=0;
-  if (val>1.0) hue = 1.0;
+  if (val < 0) val = 0;
+  if (val > 1.0) val = 1.0;
   //val = max(0, min(1.0, val));
+
 
   double hs = hue / 60.0; // sector 0 to 5
   int i = floor(hs);
@@ -407,7 +426,7 @@ void USCL::HSV(uint8_t z, uint8_t x, uint8_t y, int hue, float sat , float val)
     b = round(val * _maxBrightness);
 
   }
-  byte red, green, blue;
+  int red, green, blue;
   red = r;
   green = g;
   blue = b;
@@ -439,7 +458,7 @@ void USCL::RGB(uint8_t z, uint8_t x, uint8_t y, int red, int green , int blue)
 
   if (z >= 128)
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -449,7 +468,7 @@ void USCL::RGB(uint8_t z, uint8_t x, uint8_t y, int red, int green , int blue)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -458,7 +477,7 @@ void USCL::RGB(uint8_t z, uint8_t x, uint8_t y, int red, int green , int blue)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -488,7 +507,7 @@ void USCL::LED(uint8_t z, uint8_t x, uint8_t y, int brightness)
 
   if (z >= 128)
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -498,7 +517,7 @@ void USCL::LED(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -507,7 +526,7 @@ void USCL::LED(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -528,7 +547,7 @@ void USCL::RED(uint8_t z, uint8_t x, uint8_t y, int brightness)
 
   if (z >= 128)
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -538,7 +557,7 @@ void USCL::RED(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -547,7 +566,7 @@ void USCL::RED(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -565,7 +584,7 @@ void USCL::GREEN(uint8_t z, uint8_t x, uint8_t y, int brightness)
 
   if (z >= 128)
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -575,7 +594,7 @@ void USCL::GREEN(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -584,7 +603,7 @@ void USCL::GREEN(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -605,9 +624,9 @@ void USCL::BLUE(uint8_t z, uint8_t x, uint8_t y, int brightness)
 
   // take care of boundaries
 
-  if (z >= 128)
+  if (z >= 128) // in case a negative number is passed
     return; //z = 0;
-  if (z >= _cubeSize)
+  if (z >= _cubeSizeZ)
     return; //currVoxel.z = _cubeSize - 1;
   if (z < 0 )
     return; //;
@@ -617,7 +636,7 @@ void USCL::BLUE(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return; //y = 0;
   if (y < 0)
     return;
-  if (y >= _cubeSize)
+  if (y >= _cubeSizeY)
     return; //currVoxel.y = _cubeSize - 1;
 
   currVoxel.y = y;
@@ -626,7 +645,7 @@ void USCL::BLUE(uint8_t z, uint8_t x, uint8_t y, int brightness)
     return;
   if (x >= 128)
     return; //x = 0;
-  if (x >= _cubeSize)
+  if (x >= _cubeSizeX)
     return; //currVoxel.z = _cubeSize - 1;
 
   currVoxel.x = x;
@@ -653,7 +672,7 @@ inline void USCL::setVoxel(uint8_t* buffer, VoxelCoordinate voxelCoordinate, uin
   if (brightness > _maxBrightness )
     brightness = _maxBrightness;
 
-  uint16_t voxelPos = voxelCoordinate.y + voxelCoordinate.x * _cubeSize; // Calculate the position of the voxel from a single layer
+  uint16_t voxelPos = voxelCoordinate.y + voxelCoordinate.x * _cubeSizeX; // Calculate the position of the voxel from a single layer
   uint8_t arrPos = voxelPos / 8 + voxelCoordinate.z * _layerArrSize;  // Calculate index of the voxelmapping array based on the position of the voxel
   uint8_t arrShift = voxelPos % 8; // Calculate the needed shift to set the correct bit
 
@@ -764,11 +783,11 @@ void USCL::HSV_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2, 
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     HSV(z, x, y, hue, S, V);
 
   }
@@ -790,11 +809,11 @@ void USCL::RGB_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2, 
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     RGB(z, x, y, red, green, blue);
 
   }
@@ -816,11 +835,11 @@ void USCL::LED_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2, 
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     LED(z, x, y,   brightness);
 
   }
@@ -842,11 +861,11 @@ void USCL::RED_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2, 
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     RED(z, x, y,   brightness);
 
   }
@@ -868,11 +887,11 @@ void USCL::GREEN_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     GREEN(z, x, y,   brightness);
 
   }
@@ -894,11 +913,11 @@ void USCL::BLUE_line(uint8_t z1, uint8_t x1, uint8_t y1, uint8_t z2, uint8_t x2,
   int8_t xDirectionVector = x2 - x1;
   int8_t yDirectionVector = y2 - y1;
 
-  for (i = _cubeSize; i-- > 0;)
+  for (i = _cubeSizeZ; i-- > 0;)
   {
-    z = round(float(i / (float)_maxVoxelValue) * zDirectionVector + z1);
-    x = round(float(i / (float)_maxVoxelValue) * xDirectionVector + x1);
-    y = round(float(i / (float)_maxVoxelValue) * yDirectionVector + y1);
+    z = round(float(i / (float)_maxVoxelValueZ) * zDirectionVector + z1);
+    x = round(float(i / (float)_maxVoxelValueX) * xDirectionVector + x1);
+    y = round(float(i / (float)_maxVoxelValueY) * yDirectionVector + y1);
     BLUE(z, x, y,   brightness);
 
   }
