@@ -7,3 +7,8 @@
    - currently supporting arduino and bluepill boards, other boards are in development -
   
 NOTE: This is not about bulding LED RGB/single color CUBE, this library is software side of a hardware used to build cubes.
+
+Video of animations:
+
+https://www.youtube.com/watch?v=fdaupiZpBj4
+
