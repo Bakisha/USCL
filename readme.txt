@@ -275,7 +275,7 @@ HINTS:
 -Use milis function for per-animation time
 -I'll include animation that i had done so far. Learn from them.
 -If using arduino uno, avoid animations with line functions. Not 100% tested, and i beleave that it doesn't have enough RAM for it.
-
+- Video of 8x8x8 and 4x4x4 RGB cube can be found at: https://www.youtube.com/watch?v=fdaupiZpBj4
 
 
 
