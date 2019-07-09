@@ -127,13 +127,13 @@ EXPLANATION OF VARIABLES AND SYNTAX:
             can be any name. For example"MyCube", "c", "experiment". Since it will be unique for every sketch, i recommend to pick one and stick with it. You can use "search and replace" function to rename from deafult.
   
   -x cubesize:
-             any number between 1 and 128. This the "depth" of a cube.
+             any number between 1 and 32. This the "depth" of a cube.
 
   -y cubesize:
-             any number between 1 and 128. This is the "width" of the cube.             
+             any number between 1 and 32. This is the "width" of the cube.             
 
   -z cubesize:
-             any number between 1 and 128. This the layer size of cube.
+             any number between 1 and 32. This the layer size of cube.
              
   - cube mode:
             RGB_CUBE  - for rgb cube
