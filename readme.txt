@@ -2,7 +2,7 @@
 
                                   UNIVERSAL SERIAL CUBE LIBRARY - USCL
                                   
-  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 128x128x128 CUBE sizes
+  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 32x32x32 CUBE sizes
   
    - currently supporting arduino and bluepill boards, other boards are in development -
   
