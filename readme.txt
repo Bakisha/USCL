@@ -278,7 +278,7 @@ HINTS:
 
 
 
-
+- Video of 8x8x8 and 4x4x4 RGB cube can be found at: https://www.youtube.com/watch?v=fdaupiZpBj4
     
     
     
