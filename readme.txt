@@ -2,7 +2,7 @@
 
                                   UNIVERSAL SERIAL CUBE LIBRARY - USCL
                                   
-  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 128x128x128 CUBE sizes
+  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 32x32x32 CUBE sizes
   
    - currently supporting arduino and bluepill boards, other boards are in development -
   
@@ -28,7 +28,7 @@ With noob skils in programing, i started changing LedCube library.
 In a meantime, i finished 8x8x8 RGB cube, but this time i used STM32 microcontroller, the cheap BLUEPILL from ALIEXPRESS.
 And, since it's same in design, i rewrited some animation software from a youtuber Kevin Darrah ( https://www.kevindarrah.com/ ), and changed interrupt code from some bluepill tutorial.
 
-Well, after few years, and builded various led/rgb cubes, i finally had enough of reinventing hot water, so i manage to finish a library that can be used in various cube sizes, between 1x1x1 up to 128x128x128, and with different x,y,z sizes. It that can be compiled for both arduino and bluepill (Wemos D1 mini is still under test). Not that all sizes can work any cpu, it's just that library support it. 
+Well, after few years, and builded various led/rgb cubes, i finally had enough of reinventing hot water, so i manage to finish a library that can be used in various cube sizes, between 1x1x1 up to 32x32x32, and with different x,y,z sizes. It that can be compiled for both arduino and bluepill (Wemos D1 mini is still under test). Not that all sizes can work any cpu, it's just that library support it. 
 
 Animations are written in single sketch in Arduino IDE, and only 1 line of code is to select how cube is built (see examples). To select cpu, just select proper board in Arduino IDE options. 
 
@@ -127,13 +127,13 @@ EXPLANATION OF VARIABLES AND SYNTAX:
             can be any name. For example"MyCube", "c", "experiment". Since it will be unique for every sketch, i recommend to pick one and stick with it. You can use "search and replace" function to rename from deafult.
   
   -x cubesize:
-             any number between 1 and 128. This the "depth" of a cube.
+             any number between 1 and 32. This the "depth" of a cube.
 
   -y cubesize:
-             any number between 1 and 128. This is the "width" of the cube.             
+             any number between 1 and 32. This is the "width" of the cube.             
 
   -z cubesize:
-             any number between 1 and 128. This the layer size of cube.
+             any number between 1 and 32. This the layer size of cube.
              
   - cube mode:
             RGB_CUBE  - for rgb cube
@@ -200,7 +200,7 @@ Don't bother writing setup and loop voids before animations voids. It doesn't wo
 
 variables that can be read from library:
 
-  int cubesize = cube.getCubeSizeX(); - integers to get size of cube. Use it to scale it, so animations can be shared with other cube-sizes. Value will between 1 and 128
+  int cubesize = cube.getCubeSizeX(); - integers to get size of cube. Use it to scale it, so animations can be shared with other cube-sizes. Value will between 1 and 32
   int cubesize = cube.getCubeSizeY();  
   int cubesize = cube.getCubeSizeZ();  
   
