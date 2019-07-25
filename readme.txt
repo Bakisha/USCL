@@ -2,7 +2,7 @@
 
                                   UNIVERSAL SERIAL CUBE LIBRARY - USCL
                                   
-  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 32x32x32 CUBE sizes
+  For  Single color and RGB (Common Anode) colored LED cube, from 1x1x1 to 128x128x128 CUBE sizes
   
    - currently supporting arduino and bluepill boards, other boards are in development -
   
@@ -127,13 +127,13 @@ EXPLANATION OF VARIABLES AND SYNTAX:
             can be any name. For example"MyCube", "c", "experiment". Since it will be unique for every sketch, i recommend to pick one and stick with it. You can use "search and replace" function to rename from deafult.
   
   -x cubesize:
-             any number between 1 and 32. This the "depth" of a cube.
+             any number between 1 and 128. This the "depth" of a cube.
 
   -y cubesize:
-             any number between 1 and 32. This is the "width" of the cube.             
+             any number between 1 and 128. This is the "width" of the cube.             
 
   -z cubesize:
-             any number between 1 and 32. This the layer size of cube.
+             any number between 1 and 128. This the layer size of cube.
              
   - cube mode:
             RGB_CUBE  - for rgb cube
@@ -275,7 +275,7 @@ HINTS:
 -Use milis function for per-animation time
 -I'll include animation that i had done so far. Learn from them.
 -If using arduino uno, avoid animations with line functions. Not 100% tested, and i beleave that it doesn't have enough RAM for it.
-- Video of 8x8x8 and 4x4x4 RGB cube can be found at: https://www.youtube.com/watch?v=fdaupiZpBj4
+
 
 
 

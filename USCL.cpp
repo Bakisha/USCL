@@ -256,7 +256,7 @@ inline void USCL::refreshData(void)
     SPI.transfer(_voxelMappingFrontBuffer_R[ i + offset]);  // send red last
 
 
-  for (int j = 0; j < ((_cubeSizeZ - 1) / 8 + 1); j++ )
+  for (int j = (_cubeSizeZ - 1) / 8; j >=0 ; j-- )
   {
 
     if ( j == ((_zPositionCounter) / 8) )
