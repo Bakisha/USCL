@@ -164,7 +164,7 @@ void USCL::begin(void)
   noInterrupts();
   timer0_isr_init();
   timer0_attachInterrupt(handleInterrupt);
-  timer0_write(ESP.getCycleCount() + _ISR_microseconds * 80); // 160 when running at 160mhz
+  timer0_write(ESP.getCycleCount() + _ISR_microseconds * 160); // 160 when running at 160mhz
   interrupts();
 #endif
 
@@ -230,7 +230,10 @@ inline void USCL::pageFlipBuffering(void)
     swapBuffer(_voxelMappingFrontBuffer_B, _voxelMappingBackBuffer_B);
   }
   swapBuffer(_voxelMappingFrontBuffer_R, _voxelMappingBackBuffer_R);
-
+  
+#ifdef ESP8266 // for WEMOS D1 mini - here is code that must be called so watchdog won't reset board
+   ESP.wdtFeed(); // feed the dog
+#endif
   _invokeBufferSwap = false;
 }
 
@@ -238,7 +241,7 @@ inline void USCL::pageFlipBuffering(void)
 inline void USCL::refreshData(void)
 {
 #ifdef ESP8266 // for WEMOS D1 mini
-  timer0_write(ESP.getCycleCount() + now * 80); // 160 when running at 160mhz
+  timer0_write(ESP.getCycleCount() + now * 160); // 160 when running at 160mhz
 #endif
 
   digitalWrite(_OE_pin, HIGH); // Clear all data   // to keep BAM PWM accurate LEDs are not shown during transfer
