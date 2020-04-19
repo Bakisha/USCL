@@ -4,16 +4,16 @@
 // hardware setup:
 
 #define Xsize                      4                       // X size of cube (width)
-#define Ysize                      4                      // Y size of cube (depth)
-#define Zsize                      4                      // Z size of cube (height)
+#define Ysize                      4                       // Y size of cube (depth)
+#define Zsize                      4                       // Z size of cube (height)
 #define CUBE_MODE                  RGB_CUBE                // color cube
-//#define CUBE_MODE                 LED_CUBE              // single color cube
+//#define CUBE_MODE                 LED_CUBE               // single color cube
 #define pinOE                      PA0                     // Latch Enable pin on 595
-#define pinLE                      PA1                   // Output Enable pin on 595
+#define pinLE                      PA1                     // Output Enable pin on 595
 #define FramesPerSecond            60                      // 60 frames per second
-#define modulationBitDepth         1                       // 1 = 1 shade per color // 4 = 16 shades per color // 7 = 128 shades per color
-//#define SPIspeed                  SPI_speed_16           // Speed of SPI protocol (CPU in MHz )/ 16 (Don't use it for ESP8266)
-#define SPIspeed                  1000000                // also, it can be set as maximum SPI speed, it will be set to first lower number suported by CPU SPI hardware. Limit speed of 595 chips and lenght of traces/wires
+#define modulationBitDepth         2                       // 4 = 16 shades per color
+//#define SPIspeed                   SPI_speed_16            // Speed of SPI protocol (CPU in MHz )/ 16
+#define SPIspeed                   1000000                 // also, it can be set as maximum SPI speed, it will be set to first lower number suported by CPU SPI hardware. Limit speed of 595 chips and lenght of traces/wires
 
 
 float animtime = 180000;                                    // global duration of animations
@@ -192,3 +192,117 @@ USCL cube(Xsize, Ysize, Zsize, CUBE_MODE , pinOE, pinLE,  FramesPerSecond , modu
 
 
 void DoNotDeleteMe () {}
+
+
+// --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/* My_animation1 parameters   ***   ***
+  - time:                 Define the length of time that the animation should be executed.
+  - cube:            Define the instance of the 'USCL' class that you made in your main program.
+  - shiftDelay :        Define the delay in frames
+*/
+void My_animation1 (float time, USCL & cube, uint16_t shiftDelay)
+{
+  byte cubesizeX = cube.getCubeSizeX();
+  byte cubesizeY = cube.getCubeSizeY();
+  byte cubesizeZ = cube.getCubeSizeZ();
+  //byte cubesize = cube.getCubeSize();
+  int FPS = cube.getFPS() ;
+  int delay_FPS = 1000 / FPS;
+  int max_brightness = cube.getMaxBrightness();
+
+  int hue;
+  float S = 1.0; // saturation
+  float V = 1.0; // value (alpha)
+
+  float  startTime = millis();
+  while (millis() - startTime < time)
+  {
+    ///////////////////
+
+    for (int hue = 0; hue < 360; hue = hue + 1)
+    {
+      for ( V = 0.0; V <= 1.0; V = V + float(1.0 / float(max_brightness)) )
+      {
+
+
+        for ( byte z = 0 ; z < cubesizeZ ; z++ )
+        {
+          for ( byte y = 0; y < cubesizeY; y++)
+          {
+            for ( byte x = 0; x < cubesizeX ; x++)
+            {
+              //           cube.RED(z, x, y, max_brightness );
+              //           cube.GREEN(z, x, y, max_brightness );
+              //          cube.BLUE(z, x, y, max_brightness );
+
+              cube.HSV(z, x, y, hue, S, V);
+
+            }//  z
+          }  //  y
+        }    //  x
+
+        cube.drawVoxels();
+        // delay(500);
+
+      } // V
+
+      for ( V = 1.0; V >= 0.0; V = V - float(1.0 / float(max_brightness)) )
+      {
+
+
+        for ( byte z = 0 ; z < cubesizeZ ; z++ )
+        {
+          for ( byte y = 0; y < cubesizeY; y++)
+          {
+            for ( byte x = 0; x < cubesizeX ; x++)
+            {
+              //           cube.RED(z, x, y, max_brightness );
+              //           cube.GREEN(z, x, y, max_brightness );
+              //          cube.BLUE(z, x, y, max_brightness );
+
+              cube.HSV(z, x, y, hue, S, V);
+
+            }//  z
+          }  //  y
+        }    //  x
+
+        cube.drawVoxels();
+        // delay(500);
+
+      } // V
+    } // hue
+    ///////////////////////
+  } // While
+}// void
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+void setup() {
+
+  //Start the cube
+  pinMode(pinOE, OUTPUT);
+  digitalWrite(pinOE, HIGH); // untill all is initialized, turn off leds
+  cube.begin();
+
+}
+
+
+
+void loop() {
+
+
+
+  // list of animations. Comment out animations if it can't fit in flash memory
+  int cubesize = cube.getCubeSizeZ();
+  int frames =  cube.getFPS();
+  int delay_FPS = 1000 / frames;
+  
+   
+  
+   My_animation1(animtime, cube ,  0*delay_FPS ); // animation time lenght, cube, delay in frames (if it's too fast)
+
+} // loop
+
+
+
+

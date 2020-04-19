@@ -4,16 +4,16 @@
 // hardware setup:
 
 #define Xsize                      4                       // X size of cube (width)
-#define Ysize                      4                      // Y size of cube (depth)
-#define Zsize                      4                      // Z size of cube (height)
+#define Ysize                      4                       // Y size of cube (depth)
+#define Zsize                      4                       // Z size of cube (height)
 #define CUBE_MODE                  RGB_CUBE                // color cube
-//#define CUBE_MODE                 LED_CUBE              // single color cube
+//#define CUBE_MODE                 LED_CUBE               // single color cube
 #define pinOE                      PA0                     // Latch Enable pin on 595
-#define pinLE                      PA1                   // Output Enable pin on 595
+#define pinLE                      PA1                     // Output Enable pin on 595
 #define FramesPerSecond            60                      // 60 frames per second
-#define modulationBitDepth         1                       // 1 = 1 shade per color // 4 = 16 shades per color // 7 = 128 shades per color
-//#define SPIspeed                  SPI_speed_16           // Speed of SPI protocol (CPU in MHz )/ 16 (Don't use it for ESP8266)
-#define SPIspeed                  1000000                // also, it can be set as maximum SPI speed, it will be set to first lower number suported by CPU SPI hardware. Limit speed of 595 chips and lenght of traces/wires
+#define modulationBitDepth         1                       // 4 = 16 shades per color
+//#define SPIspeed                   SPI_speed_16            // Speed of SPI protocol (CPU in MHz )/ 16
+#define SPIspeed                   1000000                 // also, it can be set as maximum SPI speed, it will be set to first lower number suported by CPU SPI hardware. Limit speed of 595 chips and lenght of traces/wires
 
 
 float animtime = 180000;                                    // global duration of animations
