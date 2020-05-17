@@ -153,7 +153,7 @@ inline void USCL::handleInterrupt(void) {
 }
 
 #ifdef USE_HAL_DRIVER
-inline void USE_HAL_DRIVER_handleInterrupt(HardwareTimer*) {
+inline void USE_HAL_DRIVER_handleInterrupt(void) {
   USCL::handleInterrupt();
 }
 #endif
