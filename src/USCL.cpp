@@ -119,19 +119,68 @@ USCL::~USCL(void)
 
 
 // SPI.transfer macro
-#if 0
-#elif defined(USE_HAL_DRIVER)
-inline void  SPI_TRANSFER (uint8_t x)  { // 0.3uS overhead between bytes when optimized // 3.25 uS unoptimized
- //SPI.transfer(x);  // send byte
-  SPI1->DR = (x) ;
-  while (!(SPI1->SR & SPI_SR_TXE) ); 
+#ifdef COMPATIBILITY_MODE
+// COMPATIBILITY_MODE
+inline void  SPI_TRANSFER (uint8_t x)  { // 1.5uS overhead between bytes
+  SPI.transfer(x);  // send byte
 };
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+
+}
+
+#elif defined(USE_HAL_DRIVER) // STM32 HAL core
+#ifdef SPI_SR_TXE   // does it have SPI_SR_TXE?
+inline void  SPI_TRANSFER (uint8_t x)  { // macro for just sending optimized SPI data// 0.3uS overhead between bytes when optimized // 3.25 uS unoptimized
+
+  SPI1->DR = (x) ;
+
+};
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+  while (!(SPI1->SR & SPI_SR_TXE)) {}; 
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+
+while ( SPI1->SR & SPI_SR_BSY ) {}; 
+}
+#else 
+inline void  SPI_TRANSFER (uint8_t x)  { // macro for just sending optimized SPI data// 0.3uS overhead between bytes when optimized // 3.25 uS unoptimized
+
+ SPI.transfer(x);  // send byte normal
+
+};
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+
+}
+
+#endif
 #elif defined(__STM32F1__)
 inline void  SPI_TRANSFER (uint8_t x)  { // 0.375uS overhead between bytes when optimized // 1.0 uS unoptimized
- //SPI.transfer(x);  // send byte
-  SPI1->regs->DR = (x) ;
-  while (!(SPI1->regs->SR & SPI_SR_TXE) ); //wait until send buf is clear
+
+  SPI1->regs->DR = (x) ; //wait until send buf is clear
+
 };
+
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+while (SPI1->regs->SR & (!SPI_SR_TXE)) {}; 
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+
+while ( SPI1->regs->SR & SPI_SR_BSY ) {}; 
+}
+
 #elif defined(AVR)
 inline void  SPI_TRANSFER (uint8_t x)  { // optimized // 1.4uS overhead between bytes / 19uS untill layer is sent
   //SPI.transfer(x);  // send byte // 1.8uS between bytes / 19uS untill layer is sent
@@ -139,10 +188,24 @@ SPDR = x;
 while ( ! ( (SPSR) & (1 << (SPIF)) ) ) {} ; //wait until send buf is clear
 
 };
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+ 
+}
 #elif defined(ESP8266)
 inline void  SPI_TRANSFER (uint8_t x)  { // 1.5uS overhead between bytes
   SPI.transfer(x);  // send byte
 };
+inline void  SPI_TRANSFER_WAIT  () { // macro for waiting byte to be sended
+
+}
+
+inline void  SPI_TRANSFER_END  () { // macro for waiting last byte to be sended
+
+}
 #endif
 
 
@@ -165,11 +228,6 @@ ISR(TIMER1_COMPA_vect)
   USCL::handleInterrupt();
 }
 #endif
-
-
-
-
-
 
 
 // Start displaying animations on the cube
@@ -343,15 +401,18 @@ inline void USCL::refreshData(void)
     for (uint8_t i = _layerArrSize; i-- > 0;) {
       //  per core: //  SPI.transfer(_voxelMappingFrontBuffer_B[ i + offset]);  // send blue first
       SPI_TRANSFER(_voxelMappingFrontBuffer_B[ i + offset]);
+      SPI_TRANSFER_WAIT();
     }
     for (uint8_t i = _layerArrSize; i-- > 0;) {
       //  per core: //     SPI.transfer(_voxelMappingFrontBuffer_G[ i + offset]);  // send green
       SPI_TRANSFER(_voxelMappingFrontBuffer_G[ i + offset]);
+      SPI_TRANSFER_WAIT(); 
     }
   }
   for (uint8_t i = _layerArrSize; i-- > 0;) {
     //  per core: //     SPI.transfer(_voxelMappingFrontBuffer_R[ i + offset]);  // send red last
     SPI_TRANSFER(_voxelMappingFrontBuffer_R[ i + offset]);
+    SPI_TRANSFER_WAIT(); 
   }
 
 
@@ -361,16 +422,20 @@ inline void USCL::refreshData(void)
     {
       // % - moduo - remaining of result from integer division
       //  per core: //     SPI.transfer(byte((1 << (_zPositionCounter % 8)))); // send curent layer byte //
-      SPI.transfer(byte((1 << (_zPositionCounter % 8)))); // do the unoptimized spi transfer, optimized version overshoot (hardware still sending data without software)
+    //  SPI.transfer(byte((1 << (_zPositionCounter % 8)))); // do the unoptimized spi transfer, optimized version overshoot (hardware still sending data without software)
+      SPI_TRANSFER(byte((1 << (_zPositionCounter % 8)))); // in current layer, send bit to activate it
+      SPI_TRANSFER_WAIT(); 
     }
     else
     {
       //  per core: //     SPI.transfer(byte((0 << (_zPositionCounter % 8)))); // not in current byte, so send 0
-      SPI.transfer(byte((0 << (_zPositionCounter % 8)))); // do the unoptimized spi transfer, optimized version overshoot (hardware still sending data without software)
+     // SPI.transfer(byte((0 << (_zPositionCounter % 8)))); // do the unoptimized spi transfer, optimized version overshoot (hardware still sending data without software)
+      SPI_TRANSFER(byte((0 << (_zPositionCounter % 8)))); //  notin current layer, send 0 
+      SPI_TRANSFER_WAIT(); 
     }
   }
 
-
+ SPI_TRANSFER_END(); // finished sending, wait untill all is sended
 
   _modulationCounter++;
   if (_modulationCounter == _modulationBitValue)
